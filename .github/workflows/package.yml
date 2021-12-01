@@ -1,0 +1,84 @@
+# workflow name
+name: Generate release-artifacts
+
+# on events
+on:
+  push:
+    branches: [main]
+
+# workflow tasks
+jobs:
+  generate:
+    name: Generate cross-platform builds
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+      - name: Declare some variables
+        id: vars
+        shell: bash
+        run: echo "::set-output name=sha_short::$(git rev-parse --short $GITHUB_SHA)"
+      - name: Generate build files
+        uses: williampiv/go-cross-build@master
+        with:
+            platforms: 'linux/amd64, linux/arm64, darwin/amd64, darwin/arm64, windows/amd64'
+            package: ''
+            name: 'dns-made-easy-cli'
+            compress: 'true'
+            dest: 'build'
+      - name: release
+        uses: actions/create-release@v1
+        id: create_release
+        with:
+          draft: false
+          prerelease: true
+          release_name: ${{ steps.vars.outputs.sha_short }}
+          tag_name: ${{ steps.vars.outputs.sha_short }}
+          body_path: README.md
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: upload linux amd64 artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/dns-made-easy-cli-linux-amd64.tar.gz
+          asset_name: dns-made-easy-cli-linux-amd64.tar.gz
+          asset_content_type: application/gzip
+      - name: upload linux arm64 artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/dns-made-easy-cli-linux-arm64.tar.gz
+          asset_name: dns-made-easy-cli-linux-arm64.tar.gz
+          asset_content_type: application/gzip
+      - name: upload darwin amd64 artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/dns-made-easy-cli-darwin-amd64.tar.gz
+          asset_name: dns-made-easy-cli-darwin-amd64.tar.gz
+          asset_content_type: application/gzip
+      - name: upload darwin arm64 artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/dns-made-easy-cli-darwin-arm64.tar.gz
+          asset_name: dns-made-easy-cli-darwin-arm64.tar.gz
+          asset_content_type: application/gzip
+      - name: upload windows artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/dns-made-easy-cli-windows-amd64.tar.gz
+          asset_name: dns-made-easy-cli-windows-amd64.tar.gz
+          asset_content_type: application/gzip

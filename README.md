@@ -28,7 +28,7 @@ Bye!
 
 ## Quickstart
 
-1. Build `make`
+1. Build `make` OR grab your correct binary from one of the release tags
 2. Copy `secrets.ini.dist` to `secrets.ini` and fill out with actual API secrets
 3. Run `build/dns-made-easy-cli`
 
